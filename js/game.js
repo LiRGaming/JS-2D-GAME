@@ -4,7 +4,7 @@ const ctx = canvas.getContext('2d');
 canvas.width = 800;
 canvas.height = 600;
 
-// Ground class (unchanged)
+// Update the Ground class to use the ground image
 class Ground {
     constructor() {
         this.x = 0;
@@ -14,8 +14,7 @@ class Ground {
     }
 
     draw(ctx) {
-        ctx.fillStyle = 'green';
-        ctx.fillRect(this.x, this.y, this.width, this.height);
+        ctx.drawImage(sprites.ground, this.x, this.y, this.width, this.height);
     }
 }
 
@@ -55,7 +54,15 @@ function generatePlatform() {
         newY = canvas.height - Math.random() * 300 - 50;
     } while (Math.abs(newY - lastPlatform.y) < 80);
 
-    let newPlatform = { x: newX, y: newY, width: 150, height: 20 };
+    let newPlatform = {
+        x: newX,
+        y: newY,
+        width: 150,
+        height: 20,
+        draw(ctx) {
+            ctx.drawImage(sprites.platorm, this.x, this.y, this.width, this.height);
+        }
+    };
     platforms.push(newPlatform);
 
     if (Math.random() > 0.5) {
@@ -104,11 +111,14 @@ for(let key in sprites){
     );
 }
 
+// Update the gameLoop to render the background
 function gameLoop() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
+    // Draw the background image
+    ctx.drawImage(sprites.background, 0, 0, canvas.width, canvas.height);
+
     platforms.forEach(p => p.x -= gameSpeed);
-   
     collectibles.forEach(c => c.x -= gameSpeed);
 
     platforms = platforms.filter(p => p.x + p.width > 0);
@@ -118,10 +128,9 @@ function gameLoop() {
         generatePlatform();
     }
 
-    ground.draw(ctx);
+    ground.draw(ctx); // Draw the ground using the ground image
 
-    ctx.fillStyle = 'brown';
-    platforms.forEach(p => ctx.fillRect(p.x, p.y, p.width, p.height));
+    platforms.forEach(p => p.draw(ctx)); // Use the platform's draw method
 
     collectibles.forEach(c => {
         if (c.checkCollision(player)) {
@@ -130,7 +139,6 @@ function gameLoop() {
         c.draw(ctx);
     });
 
-    // Update the player with the new update method
     player.update(canvas, platforms, keys);
     player.draw(ctx, sprites);
 
